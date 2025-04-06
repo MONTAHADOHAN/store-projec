@@ -6,8 +6,14 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
+use Illuminate\Routing\Controller;
+
 class HomeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');  // تأمين جميع الدوال في هذا الـ controller
+    }
 
     public function index()
     {

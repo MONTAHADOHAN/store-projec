@@ -1,39 +1,49 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
-use App\Models\Product;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminDashboardController;
 
-// Route::get('/', function () {
-//         $products = Product::all();
-//         return view('layouts.admin', compact('products'));
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+
+Route::get('/admin/dashboard', function () {
+    return 'مرحباً يا أدمن!';
+})->middleware('admin');
+
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+});
+
+
+Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+
+// Routes for admins (manage products & categories)
+Route::middleware(['auth'])->group(function () {
     
-// });
+    // You can add 'admin' middleware here later
+    Route::resource('categories', CategoryController::class)->except(['index']);
+    Route::resource('products', ProductController::class)->except(['index']);
+    Route::resource('home', HomeController::class)->except(['index']);
+});
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/category/{categoryId}', [HomeController::class, 'showCategory'])->name('category.show');  // مسار لعرض المنتجات حسب التصنيف
-Route::get('/load-more-products', [HomeController::class, 'loadMoreProducts']);
-
-
-Route::resource('products', ProductController::class);
-// Route::get('products', [ProductController::class,'index']);
-// Route::get('products/create', [ProductController::class,'create']);
-// Route::post('products/store', [ProductController::class,'store']);
-// Route::get('products/edit/{id}', [ProductController::class,'edit']);
-// Route::get('products/delete/{id}', [ProductController::class,'delete']);
-// Route::patch('products/update/{id}', [ProductController::class,'update']);
-
-Route::resource('categories', CategoryController::class);
-Route::get('/admin/categories/{id}', [CategoryController::class, 'show'])->name('admin.categories.show');
-
-// Route::get('categories', [CategorysController::class,'index']);
-// Route::get('categories/create', [CategorysController::class,'create']);
-// Route::post('categories/store', [CategorysController::class,'store']);
-// Route::get('categories/edit/{id}', [CategorysController::class,'edit']);
-// Route::get('categories/delete/{id}', [CategorysController::class,'delete']);
-// Route::patch('categories/update/{id}', [CategorysController::class,'update']);
-
-
-
+require __DIR__.'/auth.php';
